@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  functions = "netlify/functions"
+  publish = "."
+
+[functions]
+  external_node_modules = ["express", "pg", "bcryptjs", "jsonwebtoken", "express-validator", "cors", "dotenv"]
+  node_bundler = "esbuild"
+  included_files = ["src/**", "certs/**"]
+
+[[redirects]]
+  force = true
+  from = "/api/*"
+  status = 200
+  to = "/.netlify/functions/api/:splat"
+
+[[redirects]]
+  from = "/*"
+  status = 404
+  to = "/.netlify/functions/api"
+
