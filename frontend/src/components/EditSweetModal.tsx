@@ -106,13 +106,12 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
       }
       
       // Always include image_url in updates (just like name, category, price, quantity)
-      // Convert null to undefined to match Sweet type
-      const updates: Partial<Sweet> = {
+      const updates: Partial<Sweet> & { image_url?: string | null } = {
         name: values.name,
         category: values.category,
         price: values.price,
         quantity: values.quantity,
-        image_url: imageUrl === null ? undefined : imageUrl, // Convert null to undefined for type compatibility
+        image_url: imageUrl, // Can be string, null, or undefined
       };
       
       onUpdate(updates);
