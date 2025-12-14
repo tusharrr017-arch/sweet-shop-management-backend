@@ -1,6 +1,10 @@
 {
   "name": "sweet-shop-api",
   "version": "1.0.0",
+  "scripts": {
+    "build": "echo 'No build needed for serverless function'",
+    "vercel-build": "echo 'No build needed for serverless function'"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
