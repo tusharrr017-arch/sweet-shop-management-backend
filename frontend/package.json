@@ -27,5 +27,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "vercel-build": "npm run build"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
