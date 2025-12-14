@@ -1,0 +1,170 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { apiUrl } from '../config/api';
+
+interface User {
+  id: number;
+  email: string;
+  role: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+
+      if (storedToken && storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setToken(storedToken);
+          setUser(parsedUser);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+          
+          try {
+            await axios.get(apiUrl('/api/sweets'), { 
+              params: { limit: 1 },
+              timeout: 3000 
+            });
+          } catch (verifyError: any) {
+            if (verifyError.response?.status === 401) {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              delete axios.defaults.headers.common['Authorization'];
+              setToken(null);
+              setUser(null);
+            }
+          }
+        } catch (error) {
+          console.error('Error restoring auth:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          delete axios.defaults.headers.common['Authorization'];
+          setToken(null);
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await axios.post(apiUrl('/api/auth/login'), { email, password });
+      const { token: newToken, user: newUser } = response.data;
+
+      setToken(newToken);
+      setUser(newUser);
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+    } catch (error: any) {
+      console.error('Login error details:', error);
+      console.error('Error response:', error.response);
+      
+      let errorMsg = 'Login failed';
+      
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMsg = error.response.data;
+        } else if (error.response.data.error) {
+          errorMsg = typeof error.response.data.error === 'string' 
+            ? error.response.data.error 
+            : String(error.response.data.error);
+        } else if (error.response.data.message) {
+          errorMsg = typeof error.response.data.message === 'string'
+            ? error.response.data.message
+            : String(error.response.data.message);
+        } else {
+          errorMsg = `Server error: ${error.response.status}`;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      } else if (error.request) {
+        errorMsg = 'Network error: Unable to connect to server';
+      }
+      
+      throw new Error(errorMsg);
+    }
+  };
+
+  const register = async (email: string, password: string) => {
+    try {
+      const response = await axios.post(apiUrl('/api/auth/register'), { email, password });
+      const { token: newToken, user: newUser } = response.data;
+
+      setToken(newToken);
+      setUser(newUser);
+      localStorage.setItem('token', newToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+    } catch (error: any) {
+      console.error('Registration error details:', error);
+      console.error('Error response:', error.response);
+      
+      let errorMsg = 'Registration failed';
+      
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMsg = error.response.data;
+        } else if (error.response.data.error) {
+          errorMsg = typeof error.response.data.error === 'string' 
+            ? error.response.data.error 
+            : String(error.response.data.error);
+        } else if (error.response.data.message) {
+          errorMsg = typeof error.response.data.message === 'string'
+            ? error.response.data.message
+            : String(error.response.data.message);
+        } else {
+          errorMsg = `Server error: ${error.response.status}`;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      } else if (error.request) {
+        errorMsg = 'Network error: Unable to connect to server';
+      }
+      
+      throw new Error(errorMsg);
+    }
+  };
+
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common['Authorization'];
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
