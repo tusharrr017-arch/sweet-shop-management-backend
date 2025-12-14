@@ -6,7 +6,7 @@ import path from 'path';
 
 dotenv.config();
 
-const useSQLite = process.env.USE_SQLITE === 'true' && process.env.VERCEL !== '1';
+const useSQLite = (process.env.USE_SQLITE === 'true' || !process.env.DATABASE_URL) && process.env.VERCEL !== '1';
 
 let db: Database | null = null;
 let pgPool: Pool | null = null;
