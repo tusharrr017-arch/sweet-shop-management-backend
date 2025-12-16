@@ -48,7 +48,6 @@ export const register = async (req: Request, res: Response) => {
     console.error('Registration error:', error);
     console.error('Error details:', error.message, error.stack);
     
-    // Extract error message properly
     let errorMessage = 'Internal server error';
     if (error?.message) {
       errorMessage = String(error.message);
@@ -56,7 +55,6 @@ export const register = async (req: Request, res: Response) => {
       errorMessage = error;
     }
     
-    // Check for database connection errors
     const isDbError = errorMessage.includes('DATABASE_URL') || 
                      errorMessage.includes('connection') ||
                      errorMessage.includes('ECONNREFUSED') ||
@@ -108,7 +106,6 @@ export const login = async (req: Request, res: Response) => {
     console.error('Login error:', error);
     console.error('Error details:', error.message, error.stack);
     
-    // Extract error message properly
     let errorMessage = 'Internal server error';
     if (error?.message) {
       errorMessage = String(error.message);
@@ -116,7 +113,6 @@ export const login = async (req: Request, res: Response) => {
       errorMessage = error;
     }
     
-    // Check for database connection errors
     const isDbError = errorMessage.includes('DATABASE_URL') || 
                      errorMessage.includes('connection') ||
                      errorMessage.includes('ECONNREFUSED') ||

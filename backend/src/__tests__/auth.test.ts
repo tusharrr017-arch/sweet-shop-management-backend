@@ -4,7 +4,6 @@ import pool from '../config/database';
 
 describe('Auth API', () => {
   beforeAll(async () => {
-    // Clean up test data
     await pool.query('DELETE FROM users WHERE email LIKE $1', ['test%@test.com']);
   });
 
@@ -72,7 +71,6 @@ describe('Auth API', () => {
 
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
-      // Create a test user for login tests
       await request(app)
         .post('/api/auth/register')
         .send({

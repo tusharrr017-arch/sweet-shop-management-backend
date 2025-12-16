@@ -118,12 +118,9 @@ export const updateSweet = async (req: AuthRequest, res: Response) => {
       updates.push(`quantity = $${paramCount}`);
       values.push(quantity);
     }
-    // Always update image_url if it's in the request body (even if null)
     if ('image_url' in req.body) {
       paramCount++;
       updates.push(`image_url = $${paramCount}`);
-      // Handle base64 images - ensure they're stored properly
-      // Convert empty string to null, but keep actual null as null
       const imageValue = (req.body.image_url === null || req.body.image_url === '' || req.body.image_url === undefined)
         ? null 
         : req.body.image_url;

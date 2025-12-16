@@ -1,182 +1,184 @@
-# Vercel DB Setup Guide - Step by Step
+# Vercel Database Setup Guide
 
-This guide will help you set up your Vercel Postgres database and fix the connection error.
+This guide walks through setting up a Vercel Postgres database for the Sweet Shop Management System.
 
-## Step 1: Create a Vercel Postgres Database
+## Step 1: Create Vercel Postgres Database
 
-1. **Go to your Vercel Dashboard**
-   - Visit [vercel.com](https://vercel.com) and log in
-   - Select your project (or create a new one)
+1. Go to your Vercel Dashboard at [vercel.com](https://vercel.com) and log in
+2. Select your project (or create a new one)
+3. Click on the **Storage** tab in the top menu
+4. Click **Create Database**
+5. Select **Postgres** from the database options
+6. Choose a plan (Hobby plan is free for small projects)
+7. Give your database a name (e.g., "sweet-shop-db")
+8. Click **Create**
 
-2. **Navigate to Storage**
-   - Click on your project
-   - Go to the **"Storage"** tab (in the top menu)
-   - Click **"Create Database"**
+Wait 1-2 minutes for Vercel to create your database. Once ready, you'll see it in the Storage tab.
 
-3. **Select Postgres**
-   - Choose **"Postgres"** from the database options
-   - Select a plan (Hobby plan is free for small projects)
-   - Give your database a name (e.g., "sweet-shop-db")
-   - Click **"Create"**
+## Step 2: Get Connection String
 
-4. **Wait for Database Creation**
-   - Vercel will create your database (takes about 1-2 minutes)
-   - Once ready, you'll see your database in the Storage tab
-
-## Step 2: Get Your Connection String
-
-1. **Open Your Database**
-   - Click on your newly created Postgres database
-   - Go to the **".env.local"** tab or **"Settings"** tab
-
-2. **Copy the Connection String**
-   - Look for `POSTGRES_URL` or `DATABASE_URL`
-   - It will look like: `postgres://username:password@host:port/database`
-   - **Copy this entire string** - you'll need it in the next steps
+1. Click on your newly created Postgres database
+2. Go to the **.env.local** tab or **Settings** tab
+3. Look for `POSTGRES_URL` or `DATABASE_URL`
+4. Copy the entire connection string (it will look like: `postgres://username:password@host:port/database`)
 
 ## Step 3: Set Environment Variables in Vercel
 
-1. **Go to Project Settings**
-   - In your Vercel project dashboard
-   - Click **"Settings"** (top menu)
-   - Click **"Environment Variables"** (left sidebar)
+1. In your Vercel project dashboard, click **Settings** in the top menu
+2. Click **Environment Variables** in the left sidebar
+3. Click **Add New**
+4. Add the following variables:
 
-2. **Add DATABASE_URL**
-   - Click **"Add New"**
-   - **Key**: `DATABASE_URL`
-   - **Value**: Paste your `POSTGRES_URL` connection string
-   - **Environment**: Select all (Production, Preview, Development)
-   - Click **"Save"**
+   **DATABASE_URL**
+   - Key: `DATABASE_URL`
+   - Value: Paste your `POSTGRES_URL` connection string
+   - Environment: Select all (Production, Preview, Development)
+   - Click **Save**
 
-3. **Add Other Required Variables** (if not already set):
-   - **JWT_SECRET**: Any random string (e.g., `my-super-secret-jwt-key-12345`)
-   - **JWT_EXPIRES_IN**: `24h`
-   - **NODE_ENV**: `production` (for production) or `development` (for preview/dev)
+   **JWT_SECRET**
+   - Key: `JWT_SECRET`
+   - Value: Any random string (e.g., `my-super-secret-jwt-key-12345`)
+   - Environment: Select all
+   - Click **Save**
 
-## Step 4: Set Up Local Environment (For Development)
+   **JWT_EXPIRES_IN**
+   - Key: `JWT_EXPIRES_IN`
+   - Value: `24h`
+   - Environment: Select all
+   - Click **Save**
 
-1. **Create `.env` file in `backend` folder**
-   ```bash
-   cd backend
-   ```
+   **NODE_ENV**
+   - Key: `NODE_ENV`
+   - Value: `production` (for production) or `development` (for preview/dev)
+   - Environment: Select appropriate environment
+   - Click **Save**
 
-2. **Create the file** (create a new file named `.env`):
-   ```env
-   DATABASE_URL=your_postgres_url_from_vercel_here
-   JWT_SECRET=your-super-secret-jwt-key-change-this
-   JWT_EXPIRES_IN=24h
-   PORT=3001
-   NODE_ENV=development
-   ```
+## Step 4: Set Up Local Environment
 
-3. **Replace `your_postgres_url_from_vercel_here`** with the actual `POSTGRES_URL` you copied from Vercel
+For local development, create a `.env` file in the `backend` folder:
+
+1. Navigate to the backend directory:
+```bash
+cd backend
+```
+
+2. Create a new file named `.env`:
+```env
+DATABASE_URL=your_postgres_url_from_vercel_here
+JWT_SECRET=your-super-secret-jwt-key-change-this
+JWT_EXPIRES_IN=24h
+PORT=3001
+NODE_ENV=development
+```
+
+3. Replace `your_postgres_url_from_vercel_here` with the actual `POSTGRES_URL` you copied from Vercel
 
 ## Step 5: Run Database Migrations
 
 You need to create the database tables. You have two options:
 
-### Option A: Using Vercel CLI (Recommended)
+### Option A: Using Vercel CLI
 
-1. **Install Vercel CLI** (if not installed):
-   ```bash
-   npm install -g vercel
-   ```
+1. Install Vercel CLI (if not installed):
+```bash
+npm install -g vercel
+```
 
-2. **Login to Vercel**:
-   ```bash
-   vercel login
-   ```
+2. Login to Vercel:
+```bash
+vercel login
+```
 
-3. **Link your project**:
-   ```bash
-   cd backend
-   vercel link
-   ```
+3. Link your project:
+```bash
+cd backend
+vercel link
+```
 
-4. **Pull environment variables**:
-   ```bash
-   vercel env pull .env.local
-   ```
+4. Pull environment variables:
+```bash
+vercel env pull .env.local
+```
 
-5. **Run migrations using psql**:
-   ```bash
-   # On Windows (PowerShell)
-   $env:DATABASE_URL = (Get-Content .env.local | Select-String "DATABASE_URL" | ForEach-Object { $_.ToString().Split('=')[1] })
-   psql $env:DATABASE_URL -f migrations/001_initial_schema.sql
-   
-   # On Mac/Linux
-   export DATABASE_URL=$(grep DATABASE_URL .env.local | cut -d '=' -f2)
-   psql $DATABASE_URL -f migrations/001_initial_schema.sql
-   ```
+5. Run migrations using psql:
 
-### Option B: Using Vercel Dashboard (Easier)
+On Windows (PowerShell):
+```powershell
+$env:DATABASE_URL = (Get-Content .env.local | Select-String "DATABASE_URL" | ForEach-Object { $_.ToString().Split('=')[1] })
+psql $env:DATABASE_URL -f migrations/001_initial_schema.sql
+```
 
-1. **Go to your database in Vercel**
-   - Storage → Your Database → **"Data"** tab
+On Mac/Linux:
+```bash
+export DATABASE_URL=$(grep DATABASE_URL .env.local | cut -d '=' -f2)
+psql $DATABASE_URL -f migrations/001_initial_schema.sql
+```
 
-2. **Click "Query" or "SQL Editor"**
+### Option B: Using Vercel Dashboard
 
-3. **Copy and paste this SQL** (from `backend/migrations/001_initial_schema.sql`):
-   ```sql
-   -- Create users table
-   CREATE TABLE IF NOT EXISTS users (
-     id SERIAL PRIMARY KEY,
-     email VARCHAR(255) UNIQUE NOT NULL,
-     password VARCHAR(255) NOT NULL,
-     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
+1. Go to your database in Vercel
+2. Navigate to Storage → Your Database → **Data** tab
+3. Click **Query** or **SQL Editor**
+4. Copy and paste this SQL (from `backend/migrations/001_initial_schema.sql`):
 
-   -- Create sweets table
-   CREATE TABLE IF NOT EXISTS sweets (
-     id SERIAL PRIMARY KEY,
-     name VARCHAR(255) NOT NULL,
-     category VARCHAR(100) NOT NULL,
-     price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
-     quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
-     image_url TEXT,
-     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
+```sql
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-   -- Create indexes for better query performance
-   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-   CREATE INDEX IF NOT EXISTS idx_sweets_category ON sweets(category);
-   CREATE INDEX IF NOT EXISTS idx_sweets_name ON sweets(name);
-   ```
+CREATE TABLE IF NOT EXISTS sweets (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
+  quantity INTEGER NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+  image_url TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-4. **Click "Run" or "Execute"**
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_sweets_category ON sweets(category);
+CREATE INDEX IF NOT EXISTS idx_sweets_name ON sweets(name);
+```
 
-## Step 6: Seed the Database (Create Admin User)
+5. Click **Run** or **Execute**
 
-1. **Make sure your `.env` file is set up** (Step 4)
+## Step 6: Seed the Database
 
-2. **Run the seed script**:
-   ```bash
-   cd backend
-   npm run seed
-   ```
+Create the default admin user:
 
-   This will create:
-   - Admin user: `admin@sweetshop.com`
-   - Password: `admin123`
+1. Make sure your `.env` file is set up (Step 4)
+2. Run the seed script:
+```bash
+cd backend
+npm run seed
+```
 
-## Step 7: Redeploy Your Application
+This creates:
+- Admin user: `admin@sweetshop.com`
+- Password: `admin123`
 
-1. **If you're on Vercel**:
+## Step 7: Redeploy Application
+
+1. If you're on Vercel:
    - After setting environment variables, Vercel will automatically redeploy
    - Or manually trigger a redeploy: Go to Deployments → Click "..." → "Redeploy"
 
-2. **If running locally**:
-   ```bash
-   cd backend
-   npm run dev
-   ```
+2. If running locally:
+```bash
+cd backend
+npm run dev
+```
 
 ## Step 8: Test the Login
 
-1. **Go to your login page**
-2. **Use these credentials**:
+1. Go to your login page
+2. Use these credentials:
    - Email: `admin@sweetshop.com`
    - Password: `admin123`
 
@@ -218,4 +220,3 @@ You need to create the database tables. You have two options:
 - [ ] Ran `npm run seed` (created admin user)
 - [ ] Redeployed application
 - [ ] Tested login with admin credentials
-

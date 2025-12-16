@@ -2,14 +2,12 @@ import { Pool } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables - ensure they're loaded before using them
-// Try multiple locations to find .env file
 const backendDir = path.resolve(process.cwd());
 const rootDir = path.resolve(backendDir, '..');
 
-dotenv.config({ path: path.join(backendDir, '.env') }); // backend/.env
-dotenv.config({ path: path.join(rootDir, '.env') });    // Root .env
-dotenv.config(); // Default location (current working directory)
+dotenv.config({ path: path.join(backendDir, '.env') });
+dotenv.config({ path: path.join(rootDir, '.env') });
+dotenv.config();
 
 let pgPool: Pool | null = null;
 let dbInitialized = false;
@@ -23,7 +21,6 @@ async function initializeDatabase() {
   }
   
   initPromise = (async () => {
-    // Vercel provides POSTGRES_URL, but we also support DATABASE_URL for flexibility
     const connectionString = process.env.DATABASE_URL || 
                             process.env.POSTGRES_URL || 
                             process.env.POSTGRES_URL_NON_POOLING ||
@@ -37,17 +34,12 @@ async function initializeDatabase() {
       throw error;
     }
     
-    
-    // SSL configuration for Supabase/cloud databases
-    // Check if connection requires SSL (Supabase, cloud providers, or explicit sslmode=require)
     const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
     const requiresSSL = false
     let sslConfig: any = false;
     
     if (requiresSSL) {
       const fs = require('fs');
-      
-      // Try to use certificate file if it exists
       const certPaths = [
         process.env.POSTGRES_CA_CERT_PATH,
         path.join(backendDir, 'certs', 'prod-ca-2021 (1).crt'),
@@ -72,11 +64,9 @@ async function initializeDatabase() {
             }
           }
         } catch (err: any) {
-          // Continue to next path
         }
       }
       
-      // If no certificate file found, use rejectUnauthorized: false
       if (!certFound) {
         sslConfig = { 
           rejectUnauthorized: false
@@ -87,10 +77,9 @@ async function initializeDatabase() {
     pgPool = new Pool({
       connectionString: connectionString,
       ssl: sslConfig,
-      // Connection pool settings
-      max: 20, // Maximum number of clients in the pool
+      max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 30000, // Increased timeout for cloud connections (30 seconds)
+      connectionTimeoutMillis: 30000,
     });
     
     try {

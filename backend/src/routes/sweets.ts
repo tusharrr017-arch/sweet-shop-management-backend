@@ -13,7 +13,6 @@ import { requireAdmin } from '../middleware/auth';
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authenticate);
 
 router.post('/', requireAdmin, createSweet); // Admin only
