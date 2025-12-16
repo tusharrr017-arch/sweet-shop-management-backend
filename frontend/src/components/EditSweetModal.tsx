@@ -195,14 +195,18 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
         }
       }
       
-      // Always include image_url in updates (just like name, category, price, quantity)
+      // Build updates object - only include image_url if it changed
       const updates: Partial<Sweet> & { image_url?: string | null } = {
         name: values.name,
         category: values.category,
         price: values.price,
         quantity: values.quantity,
-        image_url: imageUrl, // Can be string, null, or undefined
       };
+      
+      // Only include image_url if it actually changed (prevents sending large base64 images back)
+      if (imageUrl !== sweet.image_url) {
+        updates.image_url = imageUrl;
+      }
       
       onUpdate(updates);
       onClose();
