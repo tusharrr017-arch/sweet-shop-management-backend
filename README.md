@@ -2,7 +2,7 @@
 
 A full-stack web application for managing a sweet shop inventory, built with Node.js/TypeScript, React, and PostgreSQL (Vercel DB). This project demonstrates Test-Driven Development (TDD), clean coding practices, and modern development workflows.
 
-**Last updated:** December 2024
+**Last updated:** December 2024 - Latest commit with image upload fixes
 
 **Repository**: [GitHub](https://github.com/tusharrr017-arch/sweet-shop-management)
 
