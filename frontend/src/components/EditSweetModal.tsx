@@ -114,14 +114,16 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
   }) => {
     setLoading(true);
     try {
-      // Determine image_url value - always set it explicitly (like other fields)
+      // Determine image_url value - track if user actually changed the image
       let imageUrl: string | null = null;
+      let imageChanged = false;
       
       if (fileList.length > 0) {
         const file = fileList[0];
         
         // Check if it's a new file upload (has originFileObj)
         if (file.originFileObj) {
+          imageChanged = true; // User uploaded a new file
           // New file uploaded - compress first, then convert to base64
           try {
             // Compress image to reduce size (max 1920x1920, 80% quality)
@@ -184,15 +186,13 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
           }
         }
       } else {
-        // File list is empty - check if user explicitly removed it or just didn't change it
-        // If there was an original image and now fileList is empty, user removed it
+        // File list is empty - user removed the image
         if (sweet.image_url) {
           // User had an image but fileList is empty - they removed it
           imageUrl = null;
-        } else {
-          // No original image and fileList is empty - keep null
-          imageUrl = null;
+          imageChanged = true; // User explicitly removed the image
         }
+        // If no original image and fileList is empty, imageUrl stays null and imageChanged stays false
       }
       
       // Build updates object
@@ -203,8 +203,8 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
         quantity: values.quantity,
       };
       
-      // Only include image_url if it changed AND is not too large
-      if (imageUrl !== sweet.image_url) {
+      // Only include image_url if user actually changed it AND it's not too large
+      if (imageChanged) {
         // Check size before sending (Vercel limit is 4.5MB)
         if (imageUrl && imageUrl.startsWith('data:image')) {
           const base64Size = (imageUrl.length * 3) / 4; // Approximate byte size
@@ -217,6 +217,7 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
         }
         updates.image_url = imageUrl;
       }
+      // If imageChanged is false, we don't include image_url at all - this prevents sending large existing images
       
       onUpdate(updates);
       onClose();
