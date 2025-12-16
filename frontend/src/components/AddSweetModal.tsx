@@ -39,7 +39,7 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
         // Check if it's a new file upload (has originFileObj)
         if (file.originFileObj) {
           // New file uploaded - convert to base64
-          try {
+        try {
             imageUrl = await convertFileToBase64(file.originFileObj);
             // Verify base64 is valid
             if (!imageUrl || imageUrl.length < 100) {
@@ -47,11 +47,11 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
               setLoading(false);
               return;
             }
-          } catch (error) {
+        } catch (error) {
             console.error('❌ Base64 conversion error:', error);
-            message.error('Failed to process image');
-            setLoading(false);
-            return;
+          message.error('Failed to process image');
+          setLoading(false);
+          return;
           }
         } else if (file.url) {
           // User entered a URL directly (uid: '-2')
@@ -108,14 +108,28 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
           label="Price"
           rules={[
             { required: true, message: 'Please enter price!' },
-            { type: 'number', min: 0, message: 'Price must be positive!' }
+            {
+              validator: (_, value) => {
+                if (value === null || value === undefined || value === '') {
+                  return Promise.reject(new Error('Please enter price!'));
+                }
+                const numValue = typeof value === 'number' ? value : parseFloat(value);
+                if (isNaN(numValue)) {
+                  return Promise.reject(new Error('Price must be a valid number!'));
+                }
+                if (numValue <= 0) {
+                  return Promise.reject(new Error('Price must be greater than 0!'));
+                }
+                return Promise.resolve();
+              }
+            }
           ]}
         >
           <InputNumber
             style={{ width: '100%' }}
             placeholder="Enter price"
             prefix="$"
-            min={0}
+            min={0.01}
             step={0.01}
             precision={2}
           />
@@ -141,14 +155,14 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
           label="Image"
         >
           <div>
-            <Upload
-              listType="picture"
-              fileList={fileList}
-              beforeUpload={(file) => {
-                if (file.size > 5 * 1024 * 1024) {
-                  message.error('Image must be smaller than 5MB!');
-                  return false;
-                }
+          <Upload
+            listType="picture"
+            fileList={fileList}
+            beforeUpload={(file) => {
+              if (file.size > 5 * 1024 * 1024) {
+                message.error('Image must be smaller than 5MB!');
+                return false;
+              }
                 // Properly wrap the file in UploadFile object with originFileObj
                 setFileList([{
                   uid: Date.now().toString(),
@@ -156,19 +170,19 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
                   status: 'done',
                   originFileObj: file,
                 }]);
-                return false;
-              }}
-              onRemove={() => {
-                setFileList([]);
-                return true;
-              }}
-              accept="image/*"
-              maxCount={1}
-            >
-              <button type="button" style={{ border: 0, background: 'none' }}>
-                <UploadOutlined /> Click to upload
-              </button>
-            </Upload>
+              return false;
+            }}
+            onRemove={() => {
+              setFileList([]);
+              return true;
+            }}
+            accept="image/*"
+            maxCount={1}
+          >
+            <button type="button" style={{ border: 0, background: 'none' }}>
+              <UploadOutlined /> Click to upload
+            </button>
+          </Upload>
             <div style={{ marginTop: 8, fontSize: '12px', color: '#666' }}>
               Or enter image URL:
             </div>

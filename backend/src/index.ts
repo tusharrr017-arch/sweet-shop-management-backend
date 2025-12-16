@@ -43,9 +43,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Increase JSON body size limit to handle base64 images (10MB should be enough for most images)
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Increase JSON body size limit to handle base64 images (50MB - Vercel serverless function max)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.get('/health', async (req, res) => {
   try {

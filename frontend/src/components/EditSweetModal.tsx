@@ -163,14 +163,28 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
           label="Price"
           rules={[
             { required: true, message: 'Please enter price!' },
-            { type: 'number', min: 0, message: 'Price must be positive!' }
+            {
+              validator: (_, value) => {
+                if (value === null || value === undefined || value === '') {
+                  return Promise.reject(new Error('Please enter price!'));
+                }
+                const numValue = typeof value === 'number' ? value : parseFloat(value);
+                if (isNaN(numValue)) {
+                  return Promise.reject(new Error('Price must be a valid number!'));
+                }
+                if (numValue <= 0) {
+                  return Promise.reject(new Error('Price must be greater than 0!'));
+                }
+                return Promise.resolve();
+              }
+            }
           ]}
         >
           <InputNumber
             style={{ width: '100%' }}
             placeholder="Enter price"
             prefix="$"
-            min={0}
+            min={0.01}
             step={0.01}
             precision={2}
           />
