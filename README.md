@@ -4,6 +4,8 @@ A full-stack web application for managing a sweet shop inventory, built with Nod
 
 **Last updated:** December 2024 - Latest commit with image upload fixes
 
+> **Note:** If deploying the frontend repository separately, set Vercel Root Directory to `frontend/` in project settings.
+
 **Repository**: [GitHub](https://github.com/tusharrr017-arch/sweet-shop-management)
 
 ## Features
