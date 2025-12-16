@@ -34,8 +34,6 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
     
     // Reset file list when sweet changes
     if (sweet.image_url && sweet.image_url.trim() !== '') {
-      // If it's a base64 image, show it in the upload component
-      // If it's a URL, show it and also set it in the URL input
       setFileList([{
         uid: '-1',
         name: 'current-image',
@@ -55,110 +53,49 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
   }) => {
     setLoading(true);
     try {
-      // Determine image_url value - track if user actually changed the image
       let imageUrl: string | null = null;
-      let imageChanged = false;
       
       if (fileList.length > 0) {
         const file = fileList[0];
         
         // Check if it's a new file upload (has originFileObj)
         if (file.originFileObj) {
-          imageChanged = true; // User uploaded a new file
-          // New file uploaded - compress first, then convert to base64
+          // New file uploaded - convert to base64
           try {
-            // Compress image to reduce size (max 1920x1920, 80% quality)
-            const compressedFile = await compressImage(file.originFileObj, 1920, 1920, 0.8);
-            
-            // Check if compressed file is still too large (4MB limit for Vercel)
-            if (compressedFile.size > 4 * 1024 * 1024) {
-              // Try more aggressive compression
-              const moreCompressed = await compressImage(file.originFileObj, 1280, 1280, 0.7);
-              if (moreCompressed.size > 4 * 1024 * 1024) {
-                message.error('Image is too large even after compression. Please use a smaller image or image URL.');
-                setLoading(false);
-                return;
-              }
-              imageUrl = await convertFileToBase64(moreCompressed);
-            } else {
-              imageUrl = await convertFileToBase64(compressedFile);
-            }
-            
-            // Verify base64 is valid
-            if (!imageUrl || imageUrl.length < 100) {
-              message.error('Failed to process image - invalid data');
-              setLoading(false);
-              return;
-            }
+            imageUrl = await convertFileToBase64(file.originFileObj);
           } catch (error) {
-            console.error('❌ Image processing error:', error);
+            console.error('Base64 conversion error:', error);
             message.error('Failed to process image');
             setLoading(false);
             return;
           }
         } else if (file.url) {
-          // Existing image URL from fileList - use it (could be URL or base64)
-          // If it's a URL input (uid: '-2'), use it
-          // If it's the original image (uid: '-1'), check if it's too large
+          // Existing image URL from fileList - use it
           if (file.uid === '-2') {
             // User entered a URL directly
             imageUrl = file.url;
           } else if (file.uid === '-1') {
-            // This is the original image - check if it's base64 and too large
-            if (file.url.startsWith('data:image')) {
-              // It's a base64 image - check size
-              const base64Size = (file.url.length * 3) / 4; // Approximate byte size
-              if (base64Size > 3.5 * 1024 * 1024) {
-                // Image is too large (>3.5MB), don't send it back
-                // User needs to re-upload a compressed version
-                message.warning('Existing image is too large. Please upload a new image or use an image URL.');
-                imageUrl = null; // Clear the image
-              } else {
-                // Image is small enough, keep it
-                imageUrl = file.url;
-              }
-            } else {
-              // It's a regular URL, keep it
-              imageUrl = file.url;
-            }
+            // This is the original image - keep it as is
+            imageUrl = file.url;
           } else {
-            // Some other case - use the URL
             imageUrl = file.url;
           }
         }
       } else {
         // File list is empty - user removed the image
         if (sweet.image_url) {
-          // User had an image but fileList is empty - they removed it
           imageUrl = null;
-          imageChanged = true; // User explicitly removed the image
         }
-        // If no original image and fileList is empty, imageUrl stays null and imageChanged stays false
       }
       
       // Build updates object
-      const updates: Partial<Sweet> & { image_url?: string | null } = {
+      const updates: Partial<Sweet> = {
         name: values.name,
         category: values.category,
         price: values.price,
         quantity: values.quantity,
+        image_url: imageUrl,
       };
-      
-      // Only include image_url if user actually changed it AND it's not too large
-      if (imageChanged) {
-        // Check size before sending (Vercel limit is 4.5MB)
-        if (imageUrl && imageUrl.startsWith('data:image')) {
-          const base64Size = (imageUrl.length * 3) / 4; // Approximate byte size
-          if (base64Size > 3.5 * 1024 * 1024) {
-            // Image is too large, don't send it
-            message.error('Image is too large to upload. Please use an image URL instead or compress the image further.');
-            setLoading(false);
-            return;
-          }
-        }
-        updates.image_url = imageUrl;
-      }
-      // If imageChanged is false, we don't include image_url at all - this prevents sending large existing images
       
       onUpdate(updates);
       onClose();
