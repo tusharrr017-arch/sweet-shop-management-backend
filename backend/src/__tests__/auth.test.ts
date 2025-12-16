@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import request from 'supertest';
 import app from '../index';
 import pool from '../config/database';
