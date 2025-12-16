@@ -18,8 +18,14 @@ const getApiUrl = (): string => {
     return reactAppUrl;
   }
   
-  // Default to empty string (relative URLs) for development
-  // When empty, axios will use relative URLs which works with Vite proxy
+  // In production (Vercel), use relative URLs since frontend and backend are on same domain
+  // In development, use empty string which will use Vite proxy
+  if (import.meta.env.PROD) {
+    // Production: use relative URLs (works when frontend and backend are on same domain)
+    return '';
+  }
+  
+  // Development: use empty string (Vite proxy will handle it)
   return '';
 };
 
