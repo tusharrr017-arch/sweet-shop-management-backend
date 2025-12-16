@@ -36,41 +36,16 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
       if (fileList.length > 0) {
         const file = fileList[0];
         
-        // Check if it's a new file upload (has originFileObj)
         if (file.originFileObj) {
-          // New file uploaded - compress first, then convert to base64
           try {
-            // Compress image to reduce size (max 1920x1920, 80% quality)
-            const compressedFile = await compressImage(file.originFileObj, 1920, 1920, 0.8);
-            
-            // Check if compressed file is still too large (4MB limit for Vercel)
-            if (compressedFile.size > 4 * 1024 * 1024) {
-              // Try more aggressive compression
-              const moreCompressed = await compressImage(file.originFileObj, 1280, 1280, 0.7);
-              if (moreCompressed.size > 4 * 1024 * 1024) {
-                message.error('Image is too large even after compression. Please use a smaller image or image URL.');
-                setLoading(false);
-                return;
-              }
-              imageUrl = await convertFileToBase64(moreCompressed);
-            } else {
-              imageUrl = await convertFileToBase64(compressedFile);
-            }
-            
-            // Verify base64 is valid
-            if (!imageUrl || imageUrl.length < 100) {
-              message.error('Failed to process image - invalid data');
-              setLoading(false);
-              return;
-            }
+            imageUrl = await convertFileToBase64(file.originFileObj);
           } catch (error) {
-            console.error('❌ Image processing error:', error);
+            console.error('Image processing error:', error);
             message.error('Failed to process image');
             setLoading(false);
             return;
           }
         } else if (file.url) {
-          // User entered a URL directly (uid: '-2')
           imageUrl = file.url;
         }
       }
@@ -179,8 +154,7 @@ const AddSweetModal = ({ onClose, onAdd }: AddSweetModalProps) => {
                 message.error('Image must be smaller than 5MB!');
                 return false;
               }
-                // Properly wrap the file in UploadFile object with originFileObj
-                setFileList([{
+              setFileList([{
                   uid: Date.now().toString(),
                   name: file.name,
                   status: 'done',

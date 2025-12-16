@@ -14,7 +14,6 @@ interface SweetCardProps {
 }
 
 const getSweetImage = (sweet: Sweet): string => {
-  // Check if image_url exists and is not empty string
   if (sweet.image_url && sweet.image_url.trim() !== '') {
     return sweet.image_url;
   }

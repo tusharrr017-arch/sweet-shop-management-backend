@@ -8,7 +8,6 @@ describe('Sweets API', () => {
   let testSweetId: number;
 
   beforeAll(async () => {
-    // Create a regular user
     const userResponse = await request(app)
       .post('/api/auth/register')
       .send({
@@ -17,7 +16,6 @@ describe('Sweets API', () => {
       });
     authToken = userResponse.body.token;
 
-    // Create an admin user (manually set role in DB)
     await request(app)
       .post('/api/auth/register')
       .send({

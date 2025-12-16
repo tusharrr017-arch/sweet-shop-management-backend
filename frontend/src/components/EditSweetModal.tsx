@@ -32,7 +32,6 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
       quantity: sweet.quantity,
     });
     
-    // Reset file list when sweet changes
     if (sweet.image_url && sweet.image_url.trim() !== '') {
       setFileList([{
         uid: '-1',
@@ -58,9 +57,7 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
       if (fileList.length > 0) {
         const file = fileList[0];
         
-        // Check if it's a new file upload (has originFileObj)
         if (file.originFileObj) {
-          // New file uploaded - convert to base64
           try {
             imageUrl = await convertFileToBase64(file.originFileObj);
           } catch (error) {
@@ -70,25 +67,14 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
             return;
           }
         } else if (file.url) {
-          // Existing image URL from fileList - use it
-          if (file.uid === '-2') {
-            // User entered a URL directly
-            imageUrl = file.url;
-          } else if (file.uid === '-1') {
-            // This is the original image - keep it as is
-            imageUrl = file.url;
-          } else {
-            imageUrl = file.url;
-          }
+          imageUrl = file.url;
         }
       } else {
-        // File list is empty - user removed the image
         if (sweet.image_url) {
           imageUrl = null;
         }
       }
       
-      // Build updates object
       const updates: Partial<Sweet> = {
         name: values.name,
         category: values.category,
@@ -201,7 +187,6 @@ const EditSweetModal = ({ sweet, onClose, onUpdate }: EditSweetModalProps) => {
                   message.error('Image must be smaller than 5MB!');
                   return false;
                 }
-                // Properly wrap the file in UploadFile object with originFileObj
                 setFileList([{
                   uid: Date.now().toString(),
                   name: file.name,
